@@ -1,9 +1,6 @@
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  
-  return (
-    <footer id="contact" className="bg-tax-gray-dark relative">
+  return <footer id="contact" className="bg-tax-gray-dark relative">
       <div className="container mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div className="md:col-span-1">
@@ -11,7 +8,8 @@ export default function Footer() {
               <div className="w-9 h-9 bg-tax-blue rounded-lg flex items-center justify-center mr-2">
                 <span className="text-tax-gray-dark font-bold">VT</span>
               </div>
-              <span className="font-medium text-lg text-foreground">VyaparTax</span>
+              <span className="font-medium text-lg text-foreground">Akshay sekhar
+            </span>
             </div>
             <p className="text-muted-foreground mb-4">
               Making tax preparation intelligent, simple, and stress-free with AI.
@@ -84,6 +82,5 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 }
