@@ -1,32 +1,24 @@
-
 import { useEffect, useRef } from 'react';
-
 export default function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
-  
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-        }
-      },
-      { threshold: 0.1 }
-    );
-    
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+      }
+    }, {
+      threshold: 0.1
+    });
     if (heroRef.current) {
       observer.observe(heroRef.current);
     }
-    
     return () => {
       if (heroRef.current) {
         observer.unobserve(heroRef.current);
       }
     };
   }, []);
-
-  return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-24 overflow-hidden rangoli-decoration">
+  return <section className="relative pt-32 pb-20 md:pt-40 md:pb-24 overflow-hidden rangoli-decoration">
       {/* Background elements */}
       <div className="absolute inset-0 subtle-grid"></div>
       <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-tax-blue opacity-10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
@@ -35,9 +27,7 @@ export default function Hero() {
       <div className="container mx-auto px-6 relative z-10">
         <div ref={heroRef} className="section-animate flex flex-col items-center text-center">
           <div className="inline-block mb-4">
-            <span className="px-3 py-1 rounded-full bg-tax-blue/20 text-tax-blue text-xs font-semibold tracking-wide uppercase">
-              AI-Powered GST Solution
-            </span>
+            <span className="px-3 py-1 rounded-full bg-tax-blue/20 text-tax-blue text-xs font-semibold tracking-wide uppercase">AI-POWERED TAX SOLUTION</span>
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight max-w-4xl">
@@ -97,11 +87,7 @@ export default function Hero() {
                   </div>
                   
                   <div className="mt-4 flex">
-                    <input 
-                      type="text" 
-                      placeholder="Ask about tax deductions..." 
-                      className="flex-1 px-4 py-2 bg-tax-gray-dark rounded-l-lg text-sm border-0 focus:ring-0 focus:outline-none text-foreground"
-                    />
+                    <input type="text" placeholder="Ask about tax deductions..." className="flex-1 px-4 py-2 bg-tax-gray-dark rounded-l-lg text-sm border-0 focus:ring-0 focus:outline-none text-foreground" />
                     <button className="bg-tax-blue text-tax-gray-dark px-4 py-2 rounded-r-lg text-sm font-medium">
                       Send
                     </button>
@@ -112,6 +98,5 @@ export default function Hero() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 }
