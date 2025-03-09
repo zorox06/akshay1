@@ -14,11 +14,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, del
       className="glass-card rounded-xl p-6 transition-all duration-500 hover:shadow-lg"
       style={{ transitionDelay: `${delay}ms` }}
     >
-      <div className="mb-4 text-tax-blue-dark">
+      <div className="mb-4 text-tax-blue">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
-      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <h3 className="text-xl font-semibold mb-2 text-foreground">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 };
@@ -54,8 +54,8 @@ export default function Features() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       ),
-      title: "Smart Data Integration",
-      description: "Seamlessly connects with your financial accounts to automatically import and organize tax-relevant data.",
+      title: "Smart GSTIN Integration",
+      description: "Seamlessly connects with your GST portal to automatically import and organize tax-relevant data.",
       delay: 100
     },
     {
@@ -74,8 +74,8 @@ export default function Features() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "Real-time Tax Updates",
-      description: "Stay compliant with automatic updates on tax law changes and how they specifically impact your filing strategy.",
+      title: "Real-time GST Updates",
+      description: "Stay compliant with automatic updates on GST law changes and how they specifically impact your filing strategy.",
       delay: 300
     },
     {
@@ -85,7 +85,7 @@ export default function Features() {
         </svg>
       ),
       title: "Financial Planning",
-      description: "Get year-round tax optimization suggestions based on your spending patterns and investment activities.",
+      description: "Get year-round tax optimization suggestions based on your spending patterns and investment activities for 80C, 80D and other benefits.",
       delay: 400
     },
     {
@@ -116,13 +116,13 @@ export default function Features() {
       <div className="container mx-auto px-6 relative">
         <div ref={sectionRef} className="section-animate">
           <div className="text-center mb-16">
-            <span className="inline-block px-3 py-1 rounded-full bg-tax-blue text-tax-blue-dark text-xs font-semibold tracking-wide uppercase mb-4">
+            <span className="inline-block px-3 py-1 rounded-full bg-tax-blue/20 text-tax-blue text-xs font-semibold tracking-wide uppercase mb-4">
               Key Features
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
               Advanced AI Technology at Your Service
             </h2>
-            <p className="max-w-2xl mx-auto text-lg text-gray-600">
+            <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
               Our AI tax assistant brings together cutting-edge technology and tax expertise to deliver an unparalleled experience.
             </p>
           </div>

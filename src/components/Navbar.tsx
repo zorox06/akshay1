@@ -18,31 +18,31 @@ export default function Navbar() {
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out",
-      scrolled ? "bg-white/80 backdrop-blur-md shadow-sm py-3" : "py-5"
+      scrolled ? "bg-tax-gray-dark/90 backdrop-blur-md shadow-md py-3" : "py-5"
     )}>
       <div className="container mx-auto px-5 md:px-6 lg:px-8">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2">
-              <div className="w-9 h-9 bg-tax-blue-dark rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">ST</span>
+              <div className="w-9 h-9 bg-tax-blue rounded-lg flex items-center justify-center">
+                <span className="text-tax-gray-dark font-bold">VT</span>
               </div>
-              <span className="font-medium text-lg text-gray-900">SmartTax</span>
+              <span className="font-medium text-lg text-foreground">VyaparTax</span>
             </a>
           </div>
 
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-sm font-medium text-gray-700 hover:text-tax-blue-dark transition-colors">
+            <a href="#features" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Features
             </a>
-            <a href="#benefits" className="text-sm font-medium text-gray-700 hover:text-tax-blue-dark transition-colors">
+            <a href="#benefits" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Benefits
             </a>
-            <a href="#contact" className="text-sm font-medium text-gray-700 hover:text-tax-blue-dark transition-colors">
+            <a href="#contact" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Contact
             </a>
-            <button className="bg-tax-blue-dark hover:bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all">
+            <button className="bg-tax-blue hover:bg-tax-blue-dark text-tax-gray-dark px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all">
               Get Started
             </button>
           </div>
@@ -54,7 +54,7 @@ export default function Navbar() {
             aria-label="Toggle menu"
           >
             <svg 
-              className="w-6 h-6 text-gray-700" 
+              className="w-6 h-6 text-foreground" 
               fill="none" 
               strokeLinecap="round" 
               strokeLinejoin="round" 
@@ -73,7 +73,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         <div className={cn(
-          "md:hidden fixed inset-0 bg-white z-40 transform transition-transform ease-in-out duration-300",
+          "md:hidden fixed inset-0 bg-tax-gray-dark z-40 transform transition-transform ease-in-out duration-300",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}>
           <div className="flex flex-col h-full pt-20 px-6">
@@ -84,7 +84,7 @@ export default function Navbar() {
                 aria-label="Close menu"
               >
                 <svg 
-                  className="w-6 h-6 text-gray-700" 
+                  className="w-6 h-6 text-foreground" 
                   fill="none" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
@@ -99,26 +99,26 @@ export default function Navbar() {
             <div className="flex flex-col space-y-6 mt-8">
               <a 
                 href="#features" 
-                className="text-xl font-medium text-gray-900 py-2"
+                className="text-xl font-medium text-foreground py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </a>
               <a 
                 href="#benefits" 
-                className="text-xl font-medium text-gray-900 py-2"
+                className="text-xl font-medium text-foreground py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Benefits
               </a>
               <a 
                 href="#contact" 
-                className="text-xl font-medium text-gray-900 py-2"
+                className="text-xl font-medium text-foreground py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Contact
               </a>
-              <button className="bg-tax-blue-dark text-white py-3 px-5 rounded-lg font-medium shadow-sm mt-4">
+              <button className="bg-tax-blue text-tax-gray-dark py-3 px-5 rounded-lg font-medium shadow-sm mt-4">
                 Get Started
               </button>
             </div>

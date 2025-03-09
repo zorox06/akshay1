@@ -64,12 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				tax: {
-					'blue': '#E3F2FD',
-					'blue-light': '#BBDEFB',
-					'blue-dark': '#2196F3',
-					'gray-light': '#F8F9FA',
-					'gray-medium': '#E9ECEF',
-					'gray-dark': '#343A40'
+					'blue': '#F8AD46',        // Saffron-inspired accent
+					'blue-light': '#FFC773',  // Light saffron
+					'blue-dark': '#E67E22',   // Deep saffron
+					'green': '#138808',       // Indian flag green
+					'gray-light': '#2A2A2A',
+					'gray-medium': '#222222',
+					'gray-dark': '#1A1A1A'
 				}
 			},
 			borderRadius: {
@@ -112,7 +113,7 @@ export default {
 				'float': 'float 5s ease-in-out infinite'
 			},
 			fontFamily: {
-				sans: ['Inter var', 'Inter', 'system-ui', 'sans-serif']
+				sans: ['Poppins', 'Inter var', 'Inter', 'system-ui', 'sans-serif']
 			}
 		}
 	},
