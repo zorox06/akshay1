@@ -1,9 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -11,7 +15,25 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  return <header className={cn("fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out", scrolled ? "bg-tax-gray-dark/90 backdrop-blur-md shadow-md py-3" : "py-5")}>
+  
+  const handleNavClick = (id: string) => {
+    setMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  
+  const handleGetStarted = () => {
+    toast({
+      title: "Welcome!",
+      description: "Thank you for your interest. Let's get started with your tax journey.",
+      duration: 3000,
+    });
+  };
+
+  return (
+    <header className={cn("fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out", scrolled ? "bg-tax-gray-dark/90 backdrop-blur-md shadow-md py-3" : "py-5")}>
       <div className="container mx-auto px-5 md:px-6 lg:px-8">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
@@ -25,16 +47,28 @@ export default function Navbar() {
 
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
+            <button 
+              onClick={() => handleNavClick('features')} 
+              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
+            >
               Features
-            </a>
-            <a href="#benefits" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
+            </button>
+            <button 
+              onClick={() => handleNavClick('benefits')} 
+              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
+            >
               Benefits
-            </a>
-            <a href="#contact" className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
+            </button>
+            <button 
+              onClick={() => handleNavClick('contact')} 
+              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
+            >
               Contact
-            </a>
-            <button className="bg-tax-blue hover:bg-tax-blue-dark text-tax-gray-dark px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all">
+            </button>
+            <button 
+              onClick={handleGetStarted} 
+              className="bg-tax-blue hover:bg-tax-blue-dark text-tax-gray-dark px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all"
+            >
               Get Started
             </button>
           </div>
@@ -58,21 +92,37 @@ export default function Navbar() {
               </button>
             </div>
             <div className="flex flex-col space-y-6 mt-8">
-              <a href="#features" className="text-xl font-medium text-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+              <button 
+                onClick={() => handleNavClick('features')} 
+                className="text-xl font-medium text-foreground py-2"
+              >
                 Features
-              </a>
-              <a href="#benefits" className="text-xl font-medium text-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+              </button>
+              <button 
+                onClick={() => handleNavClick('benefits')} 
+                className="text-xl font-medium text-foreground py-2"
+              >
                 Benefits
-              </a>
-              <a href="#contact" className="text-xl font-medium text-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+              </button>
+              <button 
+                onClick={() => handleNavClick('contact')} 
+                className="text-xl font-medium text-foreground py-2"
+              >
                 Contact
-              </a>
-              <button className="bg-tax-blue text-tax-gray-dark py-3 px-5 rounded-lg font-medium shadow-sm mt-4">
+              </button>
+              <button 
+                onClick={() => {
+                  handleGetStarted();
+                  setMobileMenuOpen(false);
+                }} 
+                className="bg-tax-blue text-tax-gray-dark py-3 px-5 rounded-lg font-medium shadow-sm mt-4"
+              >
                 Get Started
               </button>
             </div>
           </div>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 }

@@ -4,7 +4,9 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
 import Benefits from '@/components/Benefits';
+import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import { ChatProvider } from '@/contexts/ChatContext';
 
 const Index = () => {
   // Add animation observer for scroll animations
@@ -31,14 +33,17 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background indian-pattern">
-      <div className="absolute inset-0 bg-gradient-to-b from-tax-blue-dark/20 to-transparent opacity-30 mix-blend-overlay pointer-events-none"></div>
-      <Navbar />
-      <Hero />
-      <Features />
-      <Benefits />
-      <Footer />
-    </div>
+    <ChatProvider>
+      <div className="min-h-screen bg-background indian-pattern">
+        <div className="absolute inset-0 bg-gradient-to-b from-tax-blue-dark/20 to-transparent opacity-30 mix-blend-overlay pointer-events-none"></div>
+        <Navbar />
+        <Hero />
+        <Features />
+        <Benefits />
+        <Contact />
+        <Footer />
+      </div>
+    </ChatProvider>
   );
 };
 
