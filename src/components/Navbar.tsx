@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 export default function Navbar() {
@@ -16,7 +17,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2">
               <div className="w-9 h-9 bg-tax-blue rounded-lg flex items-center justify-center">
-                <span className="text-tax-gray-dark font-bold">VT</span>
+                <span className="text-tax-gray-dark font-bold">AS</span>
               </div>
               <span className="font-medium text-foreground text-xl">Akshay sekhar </span>
             </a>
