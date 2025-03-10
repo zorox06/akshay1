@@ -1,33 +1,25 @@
-
 import { useRef, useEffect } from 'react';
 import ContactForm from './ContactForm';
-
 export default function Contact() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-        }
-      },
-      { threshold: 0.1 }
-    );
-    
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+      }
+    }, {
+      threshold: 0.1
+    });
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
-    
     return () => {
       if (sectionRef.current) {
         observer.unobserve(sectionRef.current);
       }
     };
   }, []);
-
-  return (
-    <section id="contact" className="py-20 md:py-24 relative">
+  return <section id="contact" className="py-20 md:py-24 relative">
       <div className="absolute inset-0 subtle-grid"></div>
       <div className="container mx-auto px-6 relative">
         <div ref={sectionRef} className="section-animate">
@@ -58,7 +50,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
-                        <p className="text-foreground">+91 98765 43210</p>
+                        <p className="text-foreground">+91 9491368083</p>
                       </div>
                     </div>
                     
@@ -119,6 +111,5 @@ export default function Contact() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 }
