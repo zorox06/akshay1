@@ -62,7 +62,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Email</h4>
-                        <p className="text-foreground">info@akshaytax.in</p>
+                        <p className="text-foreground">akshaysekharb2006@gmail.com</p>
                       </div>
                     </div>
                     
@@ -75,8 +75,8 @@ export default function Contact() {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Office</h4>
-                        <p className="text-foreground">123 Tax Plaza, MG Road</p>
-                        <p className="text-foreground">Bangalore, Karnataka 560001</p>
+                        <p className="text-foreground">13-331/108/SS sooryas sernity </p>
+                        <p className="text-foreground">Nizampet 500090 </p>
                       </div>
                     </div>
                   </div>
