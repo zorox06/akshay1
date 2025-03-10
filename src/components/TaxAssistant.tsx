@@ -1,9 +1,44 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChat } from '@/contexts/ChatContext';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Upload, Calculator } from "lucide-react";
+import { Upload, Calculator, MapPin } from "lucide-react";
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyAqumvCgoOsCv2RWlSH7-VhVnGUJU8bfrY";
+
+// State-specific tax rules (simplified for demo)
+const stateTaxRules: Record<string, { 
+  additionalTaxRate: number, 
+  specialDeductions: string[],
+  gstThresholds: Record<string, string>
+}> = {
+  "Delhi": { 
+    additionalTaxRate: 0.01, 
+    specialDeductions: ["Metro travel allowance up to ₹1,600/month"],
+    gstThresholds: { "Services": "₹20 Lakhs", "Goods": "₹40 Lakhs" }
+  },
+  "Maharashtra": { 
+    additionalTaxRate: 0.02, 
+    specialDeductions: ["Professional Tax deduction up to ₹2,500/year"],
+    gstThresholds: { "Services": "₹20 Lakhs", "Goods": "₹40 Lakhs" }
+  },
+  "Karnataka": { 
+    additionalTaxRate: 0.015, 
+    specialDeductions: ["Rent allowance special deduction up to ₹3,000/month in Bangalore"],
+    gstThresholds: { "Services": "₹20 Lakhs", "Goods": "₹40 Lakhs" }
+  },
+  "Tamil Nadu": { 
+    additionalTaxRate: 0.0125, 
+    specialDeductions: ["Entertainment tax exemption up to ₹6,000/year"],
+    gstThresholds: { "Services": "₹20 Lakhs", "Goods": "₹40 Lakhs" }
+  },
+  "Gujarat": { 
+    additionalTaxRate: 0.01, 
+    specialDeductions: ["Special economic zone tax benefits"],
+    gstThresholds: { "Services": "₹20 Lakhs", "Goods": "₹40 Lakhs" }
+  }
+};
 
 const predefinedResponses: Record<string, string> = {
   "deductions": "Based on your income details, you could claim deductions under Section 80C for your PPF contributions of ₹1,50,000, potentially saving ₹46,800 in taxes.",
@@ -15,24 +50,34 @@ const predefinedResponses: Record<string, string> = {
 };
 
 // Indian tax slabs for FY 2023-24 (AY 2024-25)
-const calculateTaxOldRegime = (income: number): number => {
-  if (income <= 250000) return 0;
-  if (income <= 500000) return (income - 250000) * 0.05;
-  if (income <= 750000) return 12500 + (income - 500000) * 0.1;
-  if (income <= 1000000) return 37500 + (income - 750000) * 0.15;
-  if (income <= 1250000) return 75000 + (income - 1000000) * 0.2;
-  if (income <= 1500000) return 125000 + (income - 1250000) * 0.25;
-  return 187500 + (income - 1500000) * 0.3;
+const calculateTaxOldRegime = (income: number, stateAdditionalTax: number = 0): number => {
+  let baseTax = 0;
+  
+  if (income <= 250000) baseTax = 0;
+  else if (income <= 500000) baseTax = (income - 250000) * 0.05;
+  else if (income <= 750000) baseTax = 12500 + (income - 500000) * 0.1;
+  else if (income <= 1000000) baseTax = 37500 + (income - 750000) * 0.15;
+  else if (income <= 1250000) baseTax = 75000 + (income - 1000000) * 0.2;
+  else if (income <= 1500000) baseTax = 125000 + (income - 1250000) * 0.25;
+  else baseTax = 187500 + (income - 1500000) * 0.3;
+  
+  // Add state-specific additional tax if applicable
+  return baseTax + (income * stateAdditionalTax);
 };
 
 // New tax regime FY 2023-24
-const calculateTaxNewRegime = (income: number): number => {
-  if (income <= 300000) return 0;
-  if (income <= 600000) return (income - 300000) * 0.05;
-  if (income <= 900000) return 15000 + (income - 600000) * 0.1;
-  if (income <= 1200000) return 45000 + (income - 900000) * 0.15;
-  if (income <= 1500000) return 90000 + (income - 1200000) * 0.2;
-  return 150000 + (income - 1500000) * 0.3;
+const calculateTaxNewRegime = (income: number, stateAdditionalTax: number = 0): number => {
+  let baseTax = 0;
+  
+  if (income <= 300000) baseTax = 0;
+  else if (income <= 600000) baseTax = (income - 300000) * 0.05;
+  else if (income <= 900000) baseTax = 15000 + (income - 600000) * 0.1;
+  else if (income <= 1200000) baseTax = 45000 + (income - 900000) * 0.15;
+  else if (income <= 1500000) baseTax = 90000 + (income - 1200000) * 0.2;
+  else baseTax = 150000 + (income - 1500000) * 0.3;
+  
+  // Add state-specific additional tax if applicable
+  return baseTax + (income * stateAdditionalTax);
 };
 
 export default function TaxAssistant() {
@@ -45,8 +90,89 @@ export default function TaxAssistant() {
     oldRegimeTax: number;
     newRegimeTax: number;
     recommendation: string;
+    stateSpecificNotes?: string[];
   } | null>(null);
   const [isUploadMode, setIsUploadMode] = useState(false);
+  const [userLocation, setUserLocation] = useState<string | null>(null);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+  // Detect user's state based on coordinates
+  const detectUserLocation = () => {
+    setIsDetectingLocation(true);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+            );
+            
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+              // Find the state from the address components
+              const addressComponents = data.results[0].address_components;
+              const stateComponent = addressComponents.find(
+                (component: any) => component.types.includes("administrative_area_level_1")
+              );
+              
+              if (stateComponent) {
+                const state = stateComponent.long_name;
+                setUserLocation(state);
+                
+                toast({
+                  title: "Location Detected",
+                  description: `Your location: ${state}`,
+                  duration: 3000,
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error getting location:", error);
+            toast({
+              title: "Location Detection Failed",
+              description: "Could not determine your location. Using default tax calculations.",
+              duration: 3000,
+            });
+          } finally {
+            setIsDetectingLocation(false);
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setIsDetectingLocation(false);
+          toast({
+            title: "Location Access Denied",
+            description: "Please enable location access for state-specific tax information.",
+            duration: 3000,
+          });
+        }
+      );
+    } else {
+      setIsDetectingLocation(false);
+      toast({
+        title: "Geolocation Not Supported",
+        description: "Your browser doesn't support geolocation.",
+        duration: 3000,
+      });
+    }
+  };
+
+  useEffect(() => {
+    // If we have location and calculation results, update the calculation with state-specific data
+    if (userLocation && calculationResult) {
+      // Find if we have specific tax rules for this state
+      const stateKey = Object.keys(stateTaxRules).find(
+        state => userLocation.includes(state)
+      );
+      
+      if (stateKey) {
+        calculateTaxLiability(csvData || []);
+      }
+    }
+  }, [userLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +247,8 @@ export default function TaxAssistant() {
   };
 
   const calculateTaxLiability = (data: any[]) => {
+    setIsProcessing(true);
+    
     // Simple implementation - assuming CSV has 'income', 'section80c', etc.
     let totalIncome = 0;
     let totalDeductions = 0;
@@ -137,24 +265,52 @@ export default function TaxAssistant() {
     const taxableIncomeOldRegime = Math.max(0, totalIncome - totalDeductions);
     const taxableIncomeNewRegime = totalIncome; // No deductions in new regime
     
-    // Calculate tax for both regimes
-    const oldRegimeTax = calculateTaxOldRegime(taxableIncomeOldRegime);
-    const newRegimeTax = calculateTaxNewRegime(taxableIncomeNewRegime);
+    // Find if we have specific tax rules for this state
+    let stateAdditionalTaxRate = 0;
+    let stateSpecificNotes: string[] = [];
+    
+    if (userLocation) {
+      const stateKey = Object.keys(stateTaxRules).find(
+        state => userLocation.includes(state)
+      );
+      
+      if (stateKey) {
+        const stateRules = stateTaxRules[stateKey];
+        stateAdditionalTaxRate = stateRules.additionalTaxRate;
+        stateSpecificNotes = [
+          `${stateKey} additional tax rate: ${stateRules.additionalTaxRate * 100}%`,
+          ...stateRules.specialDeductions.map(deduction => `Available deduction: ${deduction}`),
+          `GST registration thresholds in ${stateKey}: ${Object.entries(stateRules.gstThresholds).map(([type, threshold]) => `${type} - ${threshold}`).join(', ')}`
+        ];
+      }
+    }
+    
+    // Calculate tax for both regimes with state-specific additional tax if available
+    const oldRegimeTax = calculateTaxOldRegime(taxableIncomeOldRegime, stateAdditionalTaxRate);
+    const newRegimeTax = calculateTaxNewRegime(taxableIncomeNewRegime, stateAdditionalTaxRate);
     
     // Determine which regime is better
     const recommendation = oldRegimeTax <= newRegimeTax 
-      ? "Based on your income and deductions, the Old Tax Regime is more beneficial for you."
-      : "Based on your income and deductions, the New Tax Regime is more beneficial for you.";
+      ? `Based on your income and deductions${userLocation ? ` in ${userLocation}` : ''}, the Old Tax Regime is more beneficial for you.`
+      : `Based on your income and deductions${userLocation ? ` in ${userLocation}` : ''}, the New Tax Regime is more beneficial for you.`;
     
     setCalculationResult({
       oldRegimeTax,
       newRegimeTax,
-      recommendation
+      recommendation,
+      stateSpecificNotes: stateSpecificNotes.length > 0 ? stateSpecificNotes : undefined
     });
     
     // Add message to chat
     addMessage(`I've uploaded my financial data for tax calculation.`, 'user');
-    addMessage(`I've analyzed your financial data:\n\n1. Old Regime Tax: ₹${oldRegimeTax.toLocaleString('en-IN')}\n2. New Regime Tax: ₹${newRegimeTax.toLocaleString('en-IN')}\n\n${recommendation}`, 'ai');
+    
+    let aiResponseMessage = `I've analyzed your financial data:\n\n1. Old Regime Tax: ₹${oldRegimeTax.toLocaleString('en-IN')}\n2. New Regime Tax: ₹${newRegimeTax.toLocaleString('en-IN')}\n\n${recommendation}`;
+    
+    if (stateSpecificNotes.length > 0) {
+      aiResponseMessage += `\n\n${userLocation} specific information:\n${stateSpecificNotes.map(note => `• ${note}`).join('\n')}`;
+    }
+    
+    addMessage(aiResponseMessage, 'ai');
     
     setIsProcessing(false);
     
@@ -171,7 +327,17 @@ export default function TaxAssistant() {
 
   return (
     <div className="w-full">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end gap-2 mb-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1 text-xs"
+          onClick={detectUserLocation}
+          disabled={isDetectingLocation}
+        >
+          <MapPin className="h-3 w-3" />
+          {isDetectingLocation ? "Detecting..." : userLocation ? "Location: " + userLocation : "Detect Location"}
+        </Button>
         <Button 
           variant="outline" 
           size="sm" 
@@ -254,6 +420,17 @@ export default function TaxAssistant() {
               </div>
               <p className="text-xs text-muted-foreground">Recommendation</p>
               <p className="text-sm">{calculationResult.recommendation}</p>
+              
+              {calculationResult.stateSpecificNotes && (
+                <>
+                  <p className="text-xs text-muted-foreground mt-3">State-Specific Information</p>
+                  <ul className="text-sm space-y-1">
+                    {calculationResult.stateSpecificNotes.map((note, index) => (
+                      <li key={index} className="text-sm">• {note}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
           
