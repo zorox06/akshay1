@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -15,25 +14,23 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
   const handleNavClick = (id: string) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({
+        behavior: 'smooth'
+      });
     }
   };
-  
   const handleGetStarted = () => {
     toast({
       title: "Welcome!",
       description: "Thank you for your interest. Let's get started with your tax journey.",
-      duration: 3000,
+      duration: 3000
     });
   };
-
-  return (
-    <header className={cn("fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out", scrolled ? "bg-tax-gray-dark/90 backdrop-blur-md shadow-md py-3" : "py-5")}>
+  return <header className={cn("fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out", scrolled ? "bg-tax-gray-dark/90 backdrop-blur-md shadow-md py-3" : "py-5")}>
       <div className="container mx-auto px-5 md:px-6 lg:px-8">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
@@ -41,34 +38,22 @@ export default function Navbar() {
               <div className="w-9 h-9 bg-tax-blue rounded-lg flex items-center justify-center">
                 <span className="text-tax-gray-dark font-bold">AS</span>
               </div>
-              <span className="font-medium text-foreground text-xl">Akshay sekhar </span>
+              <span className="font-medium text-foreground text-xl">CIPHER POL 0</span>
             </a>
           </div>
 
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <button 
-              onClick={() => handleNavClick('features')} 
-              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
-            >
+            <button onClick={() => handleNavClick('features')} className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Features
             </button>
-            <button 
-              onClick={() => handleNavClick('benefits')} 
-              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
-            >
+            <button onClick={() => handleNavClick('benefits')} className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Benefits
             </button>
-            <button 
-              onClick={() => handleNavClick('contact')} 
-              className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors"
-            >
+            <button onClick={() => handleNavClick('contact')} className="text-sm font-medium text-foreground hover:text-tax-blue transition-colors">
               Contact
             </button>
-            <button 
-              onClick={handleGetStarted} 
-              className="bg-tax-blue hover:bg-tax-blue-dark text-tax-gray-dark px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all"
-            >
+            <button onClick={handleGetStarted} className="bg-tax-blue hover:bg-tax-blue-dark text-tax-gray-dark px-5 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all">
               Get Started
             </button>
           </div>
@@ -92,37 +77,24 @@ export default function Navbar() {
               </button>
             </div>
             <div className="flex flex-col space-y-6 mt-8">
-              <button 
-                onClick={() => handleNavClick('features')} 
-                className="text-xl font-medium text-foreground py-2"
-              >
+              <button onClick={() => handleNavClick('features')} className="text-xl font-medium text-foreground py-2">
                 Features
               </button>
-              <button 
-                onClick={() => handleNavClick('benefits')} 
-                className="text-xl font-medium text-foreground py-2"
-              >
+              <button onClick={() => handleNavClick('benefits')} className="text-xl font-medium text-foreground py-2">
                 Benefits
               </button>
-              <button 
-                onClick={() => handleNavClick('contact')} 
-                className="text-xl font-medium text-foreground py-2"
-              >
+              <button onClick={() => handleNavClick('contact')} className="text-xl font-medium text-foreground py-2">
                 Contact
               </button>
-              <button 
-                onClick={() => {
-                  handleGetStarted();
-                  setMobileMenuOpen(false);
-                }} 
-                className="bg-tax-blue text-tax-gray-dark py-3 px-5 rounded-lg font-medium shadow-sm mt-4"
-              >
+              <button onClick={() => {
+              handleGetStarted();
+              setMobileMenuOpen(false);
+            }} className="bg-tax-blue text-tax-gray-dark py-3 px-5 rounded-lg font-medium shadow-sm mt-4">
                 Get Started
               </button>
             </div>
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 }
