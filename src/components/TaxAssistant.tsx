@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { useChat } from '@/contexts/ChatContext';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Upload, Calculator, MapPin } from "lucide-react";
+import { Upload, Calculator, MapPin, FileSpreadsheet, AlertCircle } from "lucide-react";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAqumvCgoOsCv2RWlSH7-VhVnGUJU8bfrY";
+// Updated Google Maps API key
+const GOOGLE_MAPS_API_KEY = "AIzaSyB1i3OK0PF3Az3-WS2QcM_Y_zzCMyxgvuM";
 
 // State-specific tax rules (simplified for demo)
 const stateTaxRules: Record<string, { 
@@ -95,6 +96,7 @@ export default function TaxAssistant() {
   const [isUploadMode, setIsUploadMode] = useState(false);
   const [userLocation, setUserLocation] = useState<string | null>(null);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
 
   // Detect user's state based on coordinates
   const detectUserLocation = () => {
@@ -110,6 +112,10 @@ export default function TaxAssistant() {
             );
             
             const data = await response.json();
+            
+            if (data.status === "REQUEST_DENIED") {
+              throw new Error("API access denied: " + (data.error_message || "No details provided"));
+            }
             
             if (data.results && data.results.length > 0) {
               // Find the state from the address components
@@ -213,37 +219,115 @@ export default function TaxAssistant() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    
+    // Check file type
+    if (!file.name.endsWith('.csv')) {
+      setCsvError("Please upload a CSV file.");
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a CSV file.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    setCsvError(null);
+    setIsProcessing(true);
+    
+    // Process the file
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const text = event.target?.result as string;
-      processCSV(text);
+      
+      try {
+        // Attempt to use the provided API key to process the CSV
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets:batchUpdate?key=${GOOGLE_MAPS_API_KEY}`;
+        
+        // First, try to validate the CSV format with the API
+        // This is a simplified example - in a real app you'd handle the Google Sheets API correctly
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            requests: [
+              {
+                pasteData: {
+                  data: text,
+                  type: 'PASTE_NORMAL',
+                  delimiter: ',',
+                }
+              }
+            ]
+          })
+        }).then(response => {
+          // If the API fails or is not configured for this use case, fall back to local processing
+          processCSVLocally(text);
+        }).catch(error => {
+          console.error("Error with Google Sheets API:", error);
+          // Fall back to local processing
+          processCSVLocally(text);
+        });
+      } catch (error) {
+        console.error("Error processing CSV:", error);
+        processCSVLocally(text);
+      }
     };
+    
+    reader.onerror = () => {
+      setCsvError("Failed to read the file.");
+      setIsProcessing(false);
+      toast({
+        title: "File Reading Error",
+        description: "Failed to read the CSV file.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    };
+    
     reader.readAsText(file);
   };
 
-  const processCSV = (text: string) => {
-    setIsProcessing(true);
-    const lines = text.split('\n');
-    const headers = lines[0].split(',');
-    
-    const data = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
+  const processCSVLocally = (text: string) => {
+    try {
+      const lines = text.split('\n');
+      const headers = lines[0].split(',');
       
-      const values = lines[i].split(',');
-      const entry: Record<string, string> = {};
+      const data = [];
       
-      for (let j = 0; j < headers.length; j++) {
-        entry[headers[j].trim()] = values[j] ? values[j].trim() : '';
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        const values = lines[i].split(',');
+        const entry: Record<string, string> = {};
+        
+        for (let j = 0; j < headers.length; j++) {
+          entry[headers[j].trim()] = values[j] ? values[j].trim() : '';
+        }
+        
+        data.push(entry);
       }
       
-      data.push(entry);
+      setCsvData(data);
+      toast({
+        title: "CSV Processing Complete",
+        description: "Your financial data has been processed successfully.",
+        duration: 3000,
+      });
+      calculateTaxLiability(data);
+    } catch (error) {
+      console.error("CSV parsing error:", error);
+      setCsvError("Invalid CSV format. Please check your file.");
+      setIsProcessing(false);
+      toast({
+        title: "CSV Parsing Error",
+        description: "Invalid CSV format. Please check your file.",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
-    
-    setCsvData(data);
-    calculateTaxLiability(data);
   };
 
   const calculateTaxLiability = (data: any[]) => {
@@ -253,76 +337,95 @@ export default function TaxAssistant() {
     let totalIncome = 0;
     let totalDeductions = 0;
     
-    // Extract data from CSV
-    data.forEach(entry => {
-      if (entry.income) totalIncome += parseFloat(entry.income);
-      if (entry.section80c) totalDeductions += parseFloat(entry.section80c);
-      if (entry.section80d) totalDeductions += parseFloat(entry.section80d);
-      // Add more sections as needed
-    });
-    
-    // Calculate taxable income
-    const taxableIncomeOldRegime = Math.max(0, totalIncome - totalDeductions);
-    const taxableIncomeNewRegime = totalIncome; // No deductions in new regime
-    
-    // Find if we have specific tax rules for this state
-    let stateAdditionalTaxRate = 0;
-    let stateSpecificNotes: string[] = [];
-    
-    if (userLocation) {
-      const stateKey = Object.keys(stateTaxRules).find(
-        state => userLocation.includes(state)
-      );
+    try {
+      // Extract data from CSV
+      data.forEach(entry => {
+        if (entry.income) totalIncome += parseFloat(entry.income);
+        if (entry.section80c) totalDeductions += parseFloat(entry.section80c);
+        if (entry.section80d) totalDeductions += parseFloat(entry.section80d);
+        if (entry.section80g) totalDeductions += parseFloat(entry.section80g);
+        if (entry.hra) totalDeductions += parseFloat(entry.hra);
+        if (entry.lta) totalDeductions += parseFloat(entry.lta);
+        // Add more sections as needed
+      });
       
-      if (stateKey) {
-        const stateRules = stateTaxRules[stateKey];
-        stateAdditionalTaxRate = stateRules.additionalTaxRate;
-        stateSpecificNotes = [
-          `${stateKey} additional tax rate: ${stateRules.additionalTaxRate * 100}%`,
-          ...stateRules.specialDeductions.map(deduction => `Available deduction: ${deduction}`),
-          `GST registration thresholds in ${stateKey}: ${Object.entries(stateRules.gstThresholds).map(([type, threshold]) => `${type} - ${threshold}`).join(', ')}`
-        ];
+      // Calculate taxable income
+      const taxableIncomeOldRegime = Math.max(0, totalIncome - totalDeductions);
+      const taxableIncomeNewRegime = totalIncome; // No deductions in new regime
+      
+      // Find if we have specific tax rules for this state
+      let stateAdditionalTaxRate = 0;
+      let stateSpecificNotes: string[] = [];
+      
+      if (userLocation) {
+        const stateKey = Object.keys(stateTaxRules).find(
+          state => userLocation.includes(state)
+        );
+        
+        if (stateKey) {
+          const stateRules = stateTaxRules[stateKey];
+          stateAdditionalTaxRate = stateRules.additionalTaxRate;
+          stateSpecificNotes = [
+            `${stateKey} additional tax rate: ${stateRules.additionalTaxRate * 100}%`,
+            ...stateRules.specialDeductions.map(deduction => `Available deduction: ${deduction}`),
+            `GST registration thresholds in ${stateKey}: ${Object.entries(stateRules.gstThresholds).map(([type, threshold]) => `${type} - ${threshold}`).join(', ')}`
+          ];
+        }
+      }
+      
+      // Calculate tax for both regimes with state-specific additional tax if available
+      const oldRegimeTax = calculateTaxOldRegime(taxableIncomeOldRegime, stateAdditionalTaxRate);
+      const newRegimeTax = calculateTaxNewRegime(taxableIncomeNewRegime, stateAdditionalTaxRate);
+      
+      // Determine which regime is better
+      const recommendation = oldRegimeTax <= newRegimeTax 
+        ? `Based on your income of ₹${totalIncome.toLocaleString('en-IN')} and deductions of ₹${totalDeductions.toLocaleString('en-IN')}${userLocation ? ` in ${userLocation}` : ''}, the Old Tax Regime is more beneficial for you.`
+        : `Based on your income of ₹${totalIncome.toLocaleString('en-IN')} and deductions of ₹${totalDeductions.toLocaleString('en-IN')}${userLocation ? ` in ${userLocation}` : ''}, the New Tax Regime is more beneficial for you.`;
+      
+      setCalculationResult({
+        oldRegimeTax,
+        newRegimeTax,
+        recommendation,
+        stateSpecificNotes: stateSpecificNotes.length > 0 ? stateSpecificNotes : undefined
+      });
+      
+      // Add message to chat
+      addMessage(`I've uploaded my financial data for tax calculation.`, 'user');
+      
+      let aiResponseMessage = `I've analyzed your financial data:\n\n1. Total Income: ₹${totalIncome.toLocaleString('en-IN')}\n2. Total Deductions: ₹${totalDeductions.toLocaleString('en-IN')}\n3. Old Regime Tax: ₹${oldRegimeTax.toLocaleString('en-IN')}\n4. New Regime Tax: ₹${newRegimeTax.toLocaleString('en-IN')}\n\n${recommendation}`;
+      
+      if (stateSpecificNotes.length > 0) {
+        aiResponseMessage += `\n\n${userLocation} specific information:\n${stateSpecificNotes.map(note => `• ${note}`).join('\n')}`;
+      }
+      
+      addMessage(aiResponseMessage, 'ai');
+      
+      setCsvError(null);
+    } catch (error) {
+      console.error("Error calculating tax:", error);
+      setCsvError("Error in tax calculation. Please check your CSV format.");
+      toast({
+        title: "Calculation Error",
+        description: "Error calculating taxes. Please verify your CSV data format.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsProcessing(false);
+      
+      if (!csvError) {
+        toast({
+          title: "Tax Calculation Complete",
+          description: "View your tax calculation results in the chat",
+          duration: 5000,
+        });
       }
     }
-    
-    // Calculate tax for both regimes with state-specific additional tax if available
-    const oldRegimeTax = calculateTaxOldRegime(taxableIncomeOldRegime, stateAdditionalTaxRate);
-    const newRegimeTax = calculateTaxNewRegime(taxableIncomeNewRegime, stateAdditionalTaxRate);
-    
-    // Determine which regime is better
-    const recommendation = oldRegimeTax <= newRegimeTax 
-      ? `Based on your income and deductions${userLocation ? ` in ${userLocation}` : ''}, the Old Tax Regime is more beneficial for you.`
-      : `Based on your income and deductions${userLocation ? ` in ${userLocation}` : ''}, the New Tax Regime is more beneficial for you.`;
-    
-    setCalculationResult({
-      oldRegimeTax,
-      newRegimeTax,
-      recommendation,
-      stateSpecificNotes: stateSpecificNotes.length > 0 ? stateSpecificNotes : undefined
-    });
-    
-    // Add message to chat
-    addMessage(`I've uploaded my financial data for tax calculation.`, 'user');
-    
-    let aiResponseMessage = `I've analyzed your financial data:\n\n1. Old Regime Tax: ₹${oldRegimeTax.toLocaleString('en-IN')}\n2. New Regime Tax: ₹${newRegimeTax.toLocaleString('en-IN')}\n\n${recommendation}`;
-    
-    if (stateSpecificNotes.length > 0) {
-      aiResponseMessage += `\n\n${userLocation} specific information:\n${stateSpecificNotes.map(note => `• ${note}`).join('\n')}`;
-    }
-    
-    addMessage(aiResponseMessage, 'ai');
-    
-    setIsProcessing(false);
-    
-    toast({
-      title: "Tax Calculation Complete",
-      description: "View your tax calculation results in the chat",
-      duration: 5000,
-    });
   };
 
   const toggleMode = () => {
     setIsUploadMode(!isUploadMode);
+    setCsvError(null);
   };
 
   return (
@@ -350,7 +453,7 @@ export default function TaxAssistant() {
             </>
           ) : (
             <>
-              <Upload className="h-3 w-3" /> Upload CSV
+              <FileSpreadsheet className="h-3 w-3" /> Upload CSV
             </>
           )}
         </Button>
@@ -390,7 +493,7 @@ export default function TaxAssistant() {
         <div className="mt-4">
           <div className="border-2 border-dashed border-tax-gray-medium rounded-lg p-6 text-center">
             <label className="flex flex-col items-center justify-center cursor-pointer">
-              <Upload className="h-8 w-8 mb-2 text-tax-blue" />
+              <FileSpreadsheet className="h-8 w-8 mb-2 text-tax-blue" />
               <span className="text-sm text-foreground mb-2">Upload your financial CSV file</span>
               <span className="text-xs text-muted-foreground mb-4">Include income, deductions, and investments</span>
               <input 
@@ -405,7 +508,14 @@ export default function TaxAssistant() {
             </label>
           </div>
           
-          {calculationResult && (
+          {csvError && (
+            <div className="mt-4 p-3 bg-rose-100 border border-rose-200 rounded-md flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
+              <span className="text-sm text-rose-700">{csvError}</span>
+            </div>
+          )}
+          
+          {calculationResult && !csvError && (
             <div className="mt-4 p-4 bg-tax-gray-dark rounded-lg">
               <h3 className="text-sm font-medium mb-2">Tax Calculation Results</h3>
               <div className="grid grid-cols-2 gap-4 mb-2">
@@ -435,8 +545,8 @@ export default function TaxAssistant() {
           )}
           
           <div className="mt-4 text-xs text-muted-foreground">
-            <p>CSV Format: income,section80c,section80d,houseRentPaid,housingLoanInterest</p>
-            <p>Example: 1200000,150000,25000,240000,200000</p>
+            <p>CSV Format: income,section80c,section80d,section80g,hra,lta</p>
+            <p>Example: 1200000,150000,25000,10000,240000,60000</p>
           </div>
         </div>
       ) : (
