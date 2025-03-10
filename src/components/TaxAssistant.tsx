@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useChat } from '@/contexts/ChatContext';
 import { useToast } from "@/components/ui/use-toast";
