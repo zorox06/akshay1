@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TaxAssistant from '@/components/TaxAssistant';
+import TaxCalculatorForm from '@/components/tax-calculation/TaxCalculatorForm';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -55,7 +56,7 @@ const TaxCalculation = () => {
                   <CardTitle>Indian Income Tax Calculator</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <TaxAssistant />
+                  <TaxCalculatorForm />
                 </CardContent>
               </Card>
             </TabsContent>
