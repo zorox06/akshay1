@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { 
   Pagination, 
   PaginationContent, 
@@ -15,6 +16,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
+import { NEWS_API_KEY } from "@/utils/constants";
 
 // Static tax updates data
 const taxUpdates = [
@@ -60,11 +62,6 @@ const taxUpdates = [
   }
 ];
 
-// Create Supabase client
-const supabaseUrl = 'https://qzhrjewdgqtysuypkckl.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aHJqZXdkZ3F0eXN1eXBrY2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkwMTg2MzYsImV4cCI6MjAwNDU5NDYzNn0.qGpSi1RXJf4NqH351bZF5o9MCGTDgVsaVxP3sO69_q0';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 interface NewsArticle {
   source: {
     id: string | null;
@@ -83,6 +80,7 @@ const TaxUpdates = () => {
   const { toast } = useToast();
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('tax india');
   const articlesPerPage = 5;
@@ -90,12 +88,17 @@ const TaxUpdates = () => {
   const fetchNewsArticles = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching news articles with query:', searchQuery);
+      
       const { data, error } = await supabase.functions.invoke('google-news', {
-        body: { query: searchQuery },
+        body: { query: searchQuery }
       });
 
       if (error) {
-        console.error('Error fetching news:', error);
+        console.error('Error invoking function:', error);
+        setError('Failed to fetch news. Please try again later.');
         toast({
           title: "Error fetching news",
           description: "Could not load the latest news articles. Please try again later.",
@@ -106,15 +109,35 @@ const TaxUpdates = () => {
       }
 
       if (data && data.articles) {
+        console.log('Received articles:', data.articles.length);
         setNewsArticles(data.articles);
         toast({
           title: "News Loaded",
-          description: "Latest tax news articles have been loaded successfully.",
+          description: `${data.articles.length} latest tax news articles have been loaded.`,
+          duration: 3000,
+        });
+      } else if (data && data.error) {
+        console.error('API Error:', data.error);
+        setError(data.error);
+        toast({
+          title: "API Error",
+          description: data.error,
+          variant: "destructive",
+          duration: 3000,
+        });
+      } else {
+        console.error('Unexpected response format:', data);
+        setError('Received unexpected data format from news service.');
+        toast({
+          title: "Error",
+          description: "Received unexpected data from news service.",
+          variant: "destructive",
           duration: 3000,
         });
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (err) {
+      console.error('Exception:', err);
+      setError('An unexpected error occurred');
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again later.",
@@ -157,7 +180,7 @@ const TaxUpdates = () => {
     return () => {
       observer.disconnect();
     };
-  }, [toast, searchQuery]);
+  }, [toast]);
 
   // Calculate pagination
   const indexOfLastArticle = currentPage * articlesPerPage;
@@ -167,6 +190,12 @@ const TaxUpdates = () => {
 
   // Handle page change
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  // Handle search query change and trigger new search
+  const handleSearch = (newQuery: string) => {
+    setSearchQuery(newQuery);
+    fetchNewsArticles();
+  };
 
   return (
     <div className="min-h-screen bg-background indian-pattern">
@@ -185,41 +214,54 @@ const TaxUpdates = () => {
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-tax-blue mb-4">Latest Tax News</h2>
             
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             {loading ? (
               <div className="p-8 text-center">
                 <p>Loading latest news articles...</p>
               </div>
             ) : (
               <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentArticles.map((article, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{article.title}</TableCell>
-                        <TableCell>{article.source.name}</TableCell>
-                        <TableCell>{new Date(article.publishedAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <a 
-                            href={article.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-tax-blue hover:underline"
-                          >
-                            Read More
-                          </a>
-                        </TableCell>
+                {currentArticles.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {currentArticles.map((article, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{article.title}</TableCell>
+                          <TableCell>{article.source.name}</TableCell>
+                          <TableCell>{new Date(article.publishedAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <a 
+                              href={article.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-sm text-tax-blue hover:underline"
+                            >
+                              Read More
+                            </a>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="p-4 border rounded-md bg-muted/50">
+                    <p className="text-center">No news articles found. Try a different search term.</p>
+                  </div>
+                )}
                 
                 {/* Pagination */}
                 {newsArticles.length > articlesPerPage && (

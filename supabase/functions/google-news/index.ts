@@ -13,9 +13,14 @@ serve(async (req) => {
   }
 
   try {
-    const query = new URL(req.url).searchParams.get('query') || 'tax india';
+    // Parse request body if it exists
+    const { query = 'tax india' } = req.method === 'POST' 
+      ? await req.json() 
+      : { query: new URL(req.url).searchParams.get('query') || 'tax india' };
     
-    // Fetch news from Google News API
+    console.log('Fetching news for query:', query);
+    
+    // Fetch news from News API
     const response = await fetch(
       `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${Deno.env.get('NEWS_API_KEY')}`,
       {
@@ -25,7 +30,14 @@ serve(async (req) => {
       }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('News API error:', response.status, errorText);
+      throw new Error(`News API responded with status ${response.status}: ${errorText}`);
+    }
+
     const data = await response.json();
+    console.log(`Successfully fetched ${data.articles?.length || 0} articles`);
     
     // Return the news data with CORS headers
     return new Response(JSON.stringify(data), {
