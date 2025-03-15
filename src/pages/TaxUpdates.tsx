@@ -1,11 +1,22 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { createClient } from '@supabase/supabase-js';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
+// Static tax updates data
 const taxUpdates = [
   {
     id: 1,
@@ -49,20 +60,84 @@ const taxUpdates = [
   }
 ];
 
+// Create Supabase client
+const supabaseUrl = 'https://qzhrjewdgqtysuypkckl.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aHJqZXdkZ3F0eXN1eXBrY2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkwMTg2MzYsImV4cCI6MjAwNDU5NDYzNn0.qGpSi1RXJf4NqH351bZF5o9MCGTDgVsaVxP3sO69_q0';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+interface NewsArticle {
+  source: {
+    id: string | null;
+    name: string;
+  };
+  author: string;
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string | null;
+  publishedAt: string;
+  content: string;
+}
+
 const TaxUpdates = () => {
   const { toast } = useToast();
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('tax india');
+  const articlesPerPage = 5;
+  
+  const fetchNewsArticles = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('google-news', {
+        body: { query: searchQuery },
+      });
+
+      if (error) {
+        console.error('Error fetching news:', error);
+        toast({
+          title: "Error fetching news",
+          description: "Could not load the latest news articles. Please try again later.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      if (data && data.articles) {
+        setNewsArticles(data.articles);
+        toast({
+          title: "News Loaded",
+          description: "Latest tax news articles have been loaded successfully.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
-    // Simulate loading new tax updates
+    // Fetch news articles
+    fetchNewsArticles();
+    
+    // Regular tax updates loading toast
     toast({
       title: "Tax Updates Loaded",
       description: "Latest tax updates have been loaded successfully.",
       duration: 3000,
     });
-  }, [toast]);
-
-  // Add animation observer for scroll animations (reusing from Index.tsx)
-  useEffect(() => {
+    
+    // Add animation observer for scroll animations
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -82,7 +157,16 @@ const TaxUpdates = () => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [toast, searchQuery]);
+
+  // Calculate pagination
+  const indexOfLastArticle = currentPage * articlesPerPage;
+  const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+  const currentArticles = newsArticles.slice(indexOfFirstArticle, indexOfLastArticle);
+  const totalPages = Math.ceil(newsArticles.length / articlesPerPage);
+
+  // Handle page change
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <div className="min-h-screen bg-background indian-pattern">
@@ -97,6 +181,88 @@ const TaxUpdates = () => {
             This page is updated regularly with the most recent tax updates from various government departments.
           </p>
           
+          {/* Google News Articles Section */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-tax-blue mb-4">Latest Tax News</h2>
+            
+            {loading ? (
+              <div className="p-8 text-center">
+                <p>Loading latest news articles...</p>
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentArticles.map((article, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{article.title}</TableCell>
+                        <TableCell>{article.source.name}</TableCell>
+                        <TableCell>{new Date(article.publishedAt).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <a 
+                            href={article.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-tax-blue hover:underline"
+                          >
+                            Read More
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                {/* Pagination */}
+                {newsArticles.length > articlesPerPage && (
+                  <Pagination className="mt-4">
+                    <PaginationContent>
+                      {currentPage > 1 && (
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => paginate(currentPage - 1)} 
+                            className="cursor-pointer"
+                          />
+                        </PaginationItem>
+                      )}
+                      
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            isActive={page === currentPage}
+                            onClick={() => paginate(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      
+                      {currentPage < totalPages && (
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => paginate(currentPage + 1)} 
+                            className="cursor-pointer"
+                          />
+                        </PaginationItem>
+                      )}
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
+            )}
+          </div>
+          
+          {/* Official Tax Updates Section */}
+          <h2 className="text-2xl font-bold text-tax-blue mb-4">Official Tax Updates</h2>
           <div className="space-y-6">
             {taxUpdates.map((update) => (
               <Card key={update.id} className="section-animate">
