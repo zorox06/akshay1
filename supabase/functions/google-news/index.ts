@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const NEWS_API_KEY = '4959dcb5fd4243f59f783317890a2b94';
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,7 +24,7 @@ serve(async (req) => {
     
     // Fetch news from News API
     const response = await fetch(
-      `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${Deno.env.get('NEWS_API_KEY')}`,
+      `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${NEWS_API_KEY}`,
       {
         headers: {
           'Content-Type': 'application/json',
