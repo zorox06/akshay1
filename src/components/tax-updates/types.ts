@@ -12,3 +12,14 @@ export interface NewsArticle {
   publishedAt: string;
   content: string;
 }
+
+export interface TaxUpdate {
+  id: number;
+  title: string;
+  date: string;
+  description: string;
+  category: string;
+  content: string;
+  details: string[];
+  source: string;
+}
