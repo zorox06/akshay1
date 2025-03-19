@@ -105,9 +105,9 @@ const OfficialUpdatesSection = () => {
   const [selectedUpdate, setSelectedUpdate] = useState<typeof taxUpdates[0] | null>(null);
 
   return <div className="mt-12">
-      <h2 className="text-2xl font-bold text-tax-blue mb-4">Official Tax Updates</h2>
+      <h2 className="text-2xl font-bold text-tax-blue mb-4 transform-gpu transition-all duration-700 ease-in-out">Latest Tax Updates</h2>
       
-      <div className="mb-6 p-4 border border-amber-200 rounded-md bg-gray-900">
+      <div className="mb-6 p-4 border border-amber-200 rounded-md bg-gray-900 section-animate transform-gpu transition-all duration-700 ease-out opacity-0 translate-y-4">
         <h3 className="text-lg font-semibold text-amber-800">FY 2025-26 Key Tax Changes</h3>
         <Table>
           <TableHeader>
@@ -138,8 +138,12 @@ const OfficialUpdatesSection = () => {
       </div>
       
       <div className="space-y-6">
-        {taxUpdates.map(update => (
-          <Card key={update.id} className="section-animate">
+        {taxUpdates.map((update, index) => (
+          <Card 
+            key={update.id} 
+            className="section-animate transform-gpu transition-all duration-700 ease-out opacity-0 translate-y-4"
+            style={{ transitionDelay: `${index * 100}ms` }} // Staggered animation
+          >
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle className="text-xl text-tax-blue">{update.title}</CardTitle>
@@ -165,7 +169,7 @@ const OfficialUpdatesSection = () => {
               
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" className="text-sm text-tax-blue hover:underline">
+                  <Button variant="ghost" className="text-sm text-tax-blue hover:underline transition-all duration-300 hover:bg-tax-blue/5">
                     Read More
                   </Button>
                 </SheetTrigger>
@@ -176,23 +180,29 @@ const OfficialUpdatesSection = () => {
                   </SheetHeader>
                   
                   <div className="mt-6 space-y-4">
-                    <div>
+                    <div className="animate-smooth-entrance opacity-0" style={{ animationDelay: '100ms' }}>
                       <h4 className="font-medium text-lg mb-2">Overview</h4>
                       <p className="text-muted-foreground">{update.content}</p>
                     </div>
                     
-                    <div>
+                    <div className="animate-smooth-entrance opacity-0" style={{ animationDelay: '200ms' }}>
                       <h4 className="font-medium text-lg mb-2">Key Highlights</h4>
                       <ul className="list-disc pl-5 space-y-2">
                         {update.details.map((detail, index) => (
-                          <li key={index} className="text-sm">{detail}</li>
+                          <li 
+                            key={index} 
+                            className="text-sm animate-slide-up opacity-0" 
+                            style={{ animationDelay: `${300 + index * 100}ms` }}
+                          >
+                            {detail}
+                          </li>
                         ))}
                       </ul>
                     </div>
                     
-                    <div className="pt-4 border-t">
+                    <div className="pt-4 border-t animate-fade-in opacity-0" style={{ animationDelay: '700ms' }}>
                       <p className="text-xs text-muted-foreground">
-                        Source: <a href={update.source} target="_blank" rel="noopener noreferrer" className="underline text-tax-blue">
+                        Source: <a href={update.source} target="_blank" rel="noopener noreferrer" className="underline text-tax-blue transition-colors duration-300 hover:text-tax-blue-light">
                           {update.source}
                         </a>
                       </p>
@@ -204,6 +214,25 @@ const OfficialUpdatesSection = () => {
           </Card>
         ))}
       </div>
+      
+      <style jsx global>{`
+        .section-animate.in-view {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        /* Improved drawer animation */
+        [data-state="open"] [data-radix-sheet-content] {
+          animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+          animation-duration: 500ms !important;
+        }
+        
+        /* Improved tooltip animation */
+        [data-radix-tooltip-content] {
+          transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+          transition-duration: 300ms !important;
+        }
+      `}</style>
     </div>;
 };
 
