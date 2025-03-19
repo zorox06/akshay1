@@ -17,27 +17,17 @@ const TaxUpdates = () => {
       duration: 3000,
     });
     
-    // Enhanced animation observer for smoother scroll animations
+    // Add animation observer for scroll animations
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          // Add will-change for hardware acceleration before animation
-          entry.target.classList.add('will-change-opacity', 'will-change-transform');
-          
-          // Small delay to ensure will-change is applied before animation starts
-          setTimeout(() => {
-            entry.target.classList.add('in-view');
-          }, 50);
-        } else {
-          // Remove hardware acceleration when not in view to free resources
-          entry.target.classList.remove('will-change-opacity', 'will-change-transform');
+          entry.target.classList.add('in-view');
         }
       });
     };
     
     const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.15,  // Slightly higher threshold for more accurate triggering
-      rootMargin: '0px 0px -100px 0px'  // Trigger a bit earlier for smoother perceived effect
+      threshold: 0.1
     });
     
     document.querySelectorAll('.section-animate').forEach(section => {
@@ -55,7 +45,7 @@ const TaxUpdates = () => {
       <Navbar />
       
       <div className="container px-4 py-12 mx-auto">
-        <div className="max-w-4xl mx-auto section-animate transform-gpu transition-all duration-700 ease-out opacity-0 translate-y-8">
+        <div className="max-w-4xl mx-auto section-animate">
           <h1 className="text-3xl font-bold text-tax-blue mb-8">Latest Tax Updates</h1>
           <p className="text-muted-foreground mb-8">
             Stay informed with the latest changes in Indian tax laws, GST notifications, and compliance requirements.
