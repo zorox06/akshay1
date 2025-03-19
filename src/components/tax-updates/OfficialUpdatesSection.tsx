@@ -19,7 +19,9 @@ const OfficialUpdatesSection = () => {
         ))}
       </div>
       
-      <style jsx global>{`
+      {/* Global styles added to a style tag without jsx attributes */}
+      <style>
+        {`
         .section-animate.in-view {
           opacity: 1;
           transform: translateY(0);
@@ -35,7 +37,8 @@ const OfficialUpdatesSection = () => {
           transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
           transition-duration: 300ms !important;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
