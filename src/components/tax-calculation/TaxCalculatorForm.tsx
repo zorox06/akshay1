@@ -263,7 +263,7 @@ export default function TaxCalculatorForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Select State</SelectItem>
+                    <SelectItem value="placeholder">Select State</SelectItem>
                     {Object.keys(stateTaxRules).map((state) => (
                       <SelectItem key={state} value={state}>{state}</SelectItem>
                     ))}
