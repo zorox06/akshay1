@@ -68,8 +68,9 @@ export default function TaxAssistant() {
           />
           
           <TaxResultDisplay 
-            calculationResult={calculationResult!} 
+            calculationResult={calculationResult!}
             csvError={csvError}
+            csvData={csvData}
           />
         </div>
       ) : (
