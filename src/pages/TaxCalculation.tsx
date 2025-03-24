@@ -6,6 +6,7 @@ import TaxAssistant from '@/components/TaxAssistant';
 import TaxCalculatorForm from '@/components/tax-calculation/TaxCalculatorForm';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChatProvider } from '@/contexts/ChatContext';
 
 const TaxCalculation = () => {
   // Add animation observer for scroll animations (reusing from Index.tsx)
@@ -67,7 +68,9 @@ const TaxCalculation = () => {
                   <CardTitle>AI Tax Assistant</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <TaxAssistant />
+                  <ChatProvider>
+                    <TaxAssistant />
+                  </ChatProvider>
                 </CardContent>
               </Card>
             </TabsContent>
