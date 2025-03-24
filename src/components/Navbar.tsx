@@ -1,14 +1,22 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleTaxCalculationClick = () => {
+    navigate('/tax-calculation');
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
   };
 
   return (
@@ -30,9 +38,12 @@ const Navbar = () => {
             <Link to="/tax-laws" className="text-foreground hover:text-tax-blue text-sm font-medium">
               Tax Laws
             </Link>
-            <Link to="/tax-calculation" className="text-foreground hover:text-tax-blue text-sm font-medium">
+            <button 
+              onClick={handleTaxCalculationClick}
+              className="text-foreground hover:text-tax-blue text-sm font-medium bg-transparent border-none cursor-pointer"
+            >
               Tax Calculation
-            </Link>
+            </button>
             <Link to="/chatbot" className="text-foreground hover:text-tax-blue text-sm font-medium">
               Chatbot
             </Link>
@@ -74,13 +85,12 @@ const Navbar = () => {
               >
                 Tax Laws
               </Link>
-              <Link 
-                to="/tax-calculation" 
-                className="text-foreground hover:text-tax-blue text-sm font-medium"
-                onClick={() => setIsMenuOpen(false)}
+              <button
+                onClick={handleTaxCalculationClick}
+                className="text-foreground hover:text-tax-blue text-sm font-medium text-left bg-transparent border-none cursor-pointer"
               >
                 Tax Calculation
-              </Link>
+              </button>
               <Link 
                 to="/chatbot" 
                 className="text-foreground hover:text-tax-blue text-sm font-medium"
