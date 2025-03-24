@@ -8,7 +8,7 @@ export default function Footer() {
               <div className="w-9 h-9 bg-tax-blue rounded-lg flex items-center justify-center mr-2">
                 <span className="text-tax-gray-dark font-bold">AS</span>
               </div>
-              <span className="font-medium text-lg text-foreground">Akshay Sekhar</span>
+              <span className="font-medium text-lg text-foreground">Zoro</span>
             </div>
             <p className="text-muted-foreground mb-4">
               Making tax preparation intelligent, simple, and stress-free with AI.
