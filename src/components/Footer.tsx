@@ -71,7 +71,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-muted">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">
-              &copy; {currentYear} VyaparTax. All rights reserved.
+              &copy; {currentYear} Akshaysekhar. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-sm text-muted-foreground hover:text-tax-blue transition-colors">Privacy Policy</a>
